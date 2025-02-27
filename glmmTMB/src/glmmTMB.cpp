@@ -80,7 +80,8 @@ enum valid_covStruct {
   propto_covstruct = 11,
   // should perhaps be next to homdiag but don't want to mess
   //  up interpretation of stored fits ...
-  hetar1_covstruct = 12
+  hetar1_covstruct = 12,
+  equalto_covstruct = 13
 };
 
 // should probably be named just 'predictCode';
@@ -676,6 +677,23 @@ Type termwise_nll(array<Type> &U, vector<Type> theta, per_term_info<Type>& term,
     vector<Type> logsd = theta.head(n);
     vector<Type> sd =  exp(logsd + loglambda/2) ;
     vector<Type> corr_transf = theta.segment(n, theta.size() - n - 1);
+    density::UNSTRUCTURED_CORR_t<Type> nldens(corr_transf);
+    density::VECSCALE_t<density::UNSTRUCTURED_CORR_t<Type> > scnldens = density::VECSCALE(nldens, sd);
+    for(int i = 0; i < term.blockReps; i++){
+      ans += scnldens(U.col(i));
+      if (do_simulate) {
+        U.col(i) = sd * nldens.simulate();
+      }
+    }
+    term.corr = nldens.cov(); // For report
+    term.sd = sd;             // For report
+  }
+  else if (term.blockCode == equalto_covstruct){
+    // case: equalto_covstruct
+    int n = term.blockSize;
+    vector<Type> logsd = theta.head(n);
+    vector<Type> sd =  exp(logsd);
+    vector<Type> corr_transf = theta.segment(n, theta.size() - n);
     density::UNSTRUCTURED_CORR_t<Type> nldens(corr_transf);
     density::VECSCALE_t<density::UNSTRUCTURED_CORR_t<Type> > scnldens = density::VECSCALE(nldens, sd);
     for(int i = 0; i < term.blockReps; i++){
