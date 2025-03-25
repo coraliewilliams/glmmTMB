@@ -689,21 +689,25 @@ Type termwise_nll(array<Type> &U, vector<Type> theta, per_term_info<Type>& term,
     term.sd = sd;             // For report
   }
   else if (term.blockCode == equalto_covstruct){
-    // case: equalto_covstruct
+    // case: equalto_covstruct using GMRF covariance
     int n = term.blockSize;
     vector<Type> logsd = theta.head(n);
     vector<Type> sd =  exp(logsd);
     vector<Type> corr_transf = theta.segment(n, theta.size() - n);
-    density::UNSTRUCTURED_CORR_t<Type> nldens(corr_transf);
-    density::VECSCALE_t<density::UNSTRUCTURED_CORR_t<Type> > scnldens = density::VECSCALE(nldens, sd);
+    // construct GMRF covariance
+    density::GMRF_t<Type> gmrf(corr_transf);
+    
+    //density::UNSTRUCTURED_CORR_t<Type> nldens(corr_transf);
+    //density::VECSCALE_t<density::UNSTRUCTURED_CORR_t<Type> > scnldens = density::VECSCALE(nldens, sd);
+    
     for(int i = 0; i < term.blockReps; i++){
-      ans += scnldens(U.col(i));
+      ans += gmrf(U.col(i));
       if (do_simulate) {
-        U.col(i) = sd * nldens.simulate();
+        U.col(i) = gmrf.simulate();
       }
     }
-    term.corr = nldens.cov(); // For report
-    term.sd = sd;             // For report
+    term.corr = gmrf.cov(); // For report
+    term.sd = sd;           // For report
   }
   else error("covStruct not implemented!");
   return ans;
