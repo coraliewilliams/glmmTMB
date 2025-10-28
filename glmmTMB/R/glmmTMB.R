@@ -900,7 +900,7 @@ map.theta.propto <- function(ReStruc, map) {
     if(cov_code[[i]] == 11) {
       tl[[i]][1:(blockTheta[i] - 1)] <- rep(NA, blockTheta[i] - 1)
     } else if(cov_code[[i]] == 13) {
-      tl[[i]][1:(blockTheta[i])] <- rep(NA, blockTheta[i])
+      tl[[i]][1:(blockTheta[i])] <- rep(NA, blockTheta[i]) #make equalto matrix fixed in theta vector
     }
   }
   map.theta <- unlist(tl, use.names = FALSE)

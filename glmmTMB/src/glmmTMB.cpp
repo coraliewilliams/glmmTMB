@@ -694,6 +694,7 @@ Type termwise_nll(array<Type> &U, vector<Type> theta, per_term_info<Type>& term,
     vector<Type> logsd = theta.head(n);
     vector<Type> sd =  exp(logsd);
     vector<Type> corr_transf = theta.segment(n, theta.size() - n);
+
     // construct GMRF covariance
     density::GMRF_t<Type> gmrf(corr_transf);
     
@@ -706,8 +707,8 @@ Type termwise_nll(array<Type> &U, vector<Type> theta, per_term_info<Type>& term,
         U.col(i) = gmrf.simulate();
       }
     }
-    term.corr = gmrf.cov(); // For report
-    term.sd = sd;           // For report
+    term.corr = gmrf();  // For report
+    term.sd = sd;            // For report
   }
   else error("covStruct not implemented!");
   return ans;
